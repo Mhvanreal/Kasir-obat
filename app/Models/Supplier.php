@@ -10,7 +10,9 @@ class Supplier extends Model
     use HasFactory;
 
     protected $primaryKey = 'kd_supplier';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

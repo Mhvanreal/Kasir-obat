@@ -10,7 +10,9 @@ class Penjualan extends Model
     use HasFactory;
 
     protected $primaryKey = 'nota';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -20,6 +22,7 @@ class Penjualan extends Model
         'diskon',
         'total',
         'grand_total',
+        'metode_pembayaran',
         'user_id',
     ];
 
@@ -61,6 +64,7 @@ class Penjualan extends Model
     {
         $diskonAmount = ($this->total * $this->diskon) / 100;
         $this->grand_total = $this->total - $diskonAmount;
+
         return $this->grand_total;
     }
 }

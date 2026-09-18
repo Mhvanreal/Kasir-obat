@@ -38,20 +38,59 @@
             </div>
         </div>
 
-        <!-- Alert Messages -->
-        @if (session('success'))
-            <div class="mb-6 overflow-hidden bg-green-50 border border-green-200 rounded-lg shadow-sm"
+        <!-- Notifikasi Stok Perhatian -->
+        @php
+            $obatHabis = $obats->filter(fn($o) => $o->isStokHabis());
+            $obatKritis = $obats->filter(fn($o) => $o->isStokKritis());
+            $obatRendah = $obats->filter(fn($o) => $o->isStokRendah());
+            $totalPerhatian = $obatHabis->count() + $obatKritis->count() + $obatRendah->count();
+        @endphp
+        @if ($totalPerhatian > 0)
+            <div class="mb-6 overflow-hidden rounded-lg shadow-sm border-2
+                {{ $obatHabis->count() || $obatKritis->count() ? 'bg-red-50 border-red-300' : 'bg-yellow-50 border-yellow-300' }}"
                 x-data="{ show: true }" x-show="show" x-transition>
                 <div class="px-4 py-3">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-start gap-3 flex-1">
+                            <svg class="w-6 h-6 flex-shrink-0 mt-0.5
+                                {{ $obatHabis->count() || $obatKritis->count() ? 'text-red-600 animate-pulse' : 'text-yellow-600' }}"
+                                fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                    clip-rule="evenodd" />
                             </svg>
-                            <p class="text-sm font-medium text-green-800">{{ session('success') }}</p>
+                            <div class="flex-1">
+                                <p class="text-sm font-semibold {{ $obatHabis->count() || $obatKritis->count() ? 'text-red-900' : 'text-yellow-900' }}">
+                                    Perhatian Stok: {{ $totalPerhatian }} obat membutuhkan tindakan
+                                </p>
+                                <div class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                                    @if ($obatHabis->count())
+                                        <span class="text-red-800">
+                                            <span class="inline-block w-2 h-2 bg-red-600 rounded-full mr-1"></span>
+                                            <strong>{{ $obatHabis->count() }}</strong> habis
+                                        </span>
+                                    @endif
+                                    @if ($obatKritis->count())
+                                        <span class="text-red-800">
+                                            <span class="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>
+                                            <strong>{{ $obatKritis->count() }}</strong> kritis (&lt; {{ \App\Models\Obat::AMBANG_KRITIS }})
+                                        </span>
+                                    @endif
+                                    @if ($obatRendah->count())
+                                        <span class="text-yellow-800">
+                                            <span class="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1"></span>
+                                            <strong>{{ $obatRendah->count() }}</strong> rendah ({{ \App\Models\Obat::AMBANG_KRITIS }}&ndash;{{ \App\Models\Obat::AMBANG_RENDAH }})
+                                        </span>
+                                    @endif
+                                </div>
+                                @if ($obatHabis->count() || $obatKritis->count())
+                                    <p class="mt-1.5 text-xs text-red-700">
+                                        Segera lakukan restok melalui menu Pembelian.
+                                    </p>
+                                @endif
+                            </div>
                         </div>
-                        <button @click="show = false" class="text-green-600 hover:text-green-800">
+                        <button @click="show = false" class="text-gray-400 hover:text-gray-600">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M6 18L18 6M6 6l12 12" />
@@ -61,6 +100,8 @@
                 </div>
             </div>
         @endif
+
+        {{-- Flash success/error ditampilkan otomatis lewat <x-flash-toast /> di layouts.app --}}
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3">
@@ -102,9 +143,11 @@
                 <div class="p-6">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-600">Stok Menipis</p>
-                            <p class="mt-2 text-3xl font-bold text-gray-900">{{ $obats->where('stok', '<', 10)->count() }}
+                            <p class="text-sm font-medium text-gray-600">Stok Perlu Perhatian</p>
+                            <p class="mt-2 text-3xl font-bold {{ $totalPerhatian > 0 ? 'text-red-600' : 'text-gray-900' }}">
+                                {{ $totalPerhatian }}
                             </p>
+                            <p class="mt-1 text-xs text-gray-500">Habis + kritis + rendah</p>
                         </div>
                         <div class="p-3 bg-red-100 rounded-lg">
                             <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,7 +224,11 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse ($obats as $index => $obat)
-                            <tr class="transition-colors hover:bg-gray-50">
+                            <tr class="transition-colors
+                                @if ($obat->isStokHabis()) bg-red-50 hover:bg-red-100 border-l-4 border-red-600
+                                @elseif ($obat->isStokKritis()) bg-red-50/50 hover:bg-red-50 border-l-4 border-red-500
+                                @elseif ($obat->isStokRendah()) bg-yellow-50/60 hover:bg-yellow-50 border-l-4 border-yellow-400
+                                @else hover:bg-gray-50 @endif">
                                 <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
                                     {{ $index + 1 }}
                                 </td>
@@ -190,8 +237,17 @@
                                         {{ $obat->kd_obat }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
-                                    {{ $obat->nm_obat }}
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        @if ($obat->gambar)
+                                            <img src="{{ asset('storage/'.$obat->gambar) }}"
+                                                class="object-cover w-10 h-10 mr-3 rounded-lg">
+                                        @else
+                                            <img src="{{ asset('images/no-image.svg') }}"
+                                                class="object-cover w-10 h-10 mr-3 bg-gray-100 rounded-lg">
+                                        @endif
+                                        <span class="text-sm font-medium text-gray-900">{{ $obat->nm_obat }}</span>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                                     {{ $obat->jenis }}
@@ -203,33 +259,24 @@
                                     Rp {{ number_format($obat->harga_jual, 0, ',', '.') }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if ($obat->stok < 10)
-                                        <span
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd"
-                                                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                            {{ $obat->stok }}
-                                        </span>
-                                    @elseif($obat->stok < 50)
-                                        <span
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                            {{ $obat->stok }}
-                                        </span>
-                                    @else
-                                        <span
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            {{ $obat->stok }}
-                                        </span>
-                                    @endif
+                                    <x-stok-badge :obat="$obat" />
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                                     {{ $obat->supplier->nm_supplier ?? '-' }}
                                 </td>
                                 <td class="px-6 py-4 text-sm font-medium text-center whitespace-nowrap">
                                     <div class="flex items-center justify-center space-x-2">
+                                        <a href="{{ route('karyawan.obat.show', $obat->kd_obat) }}"
+                                            class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-teal-700 transition-colors bg-teal-100 rounded-lg hover:bg-teal-200">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            Detail
+                                        </a>
                                         <button @click="openEditModal({{ json_encode($obat) }})"
                                             class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 transition-colors bg-blue-100 rounded-lg hover:bg-blue-200">
                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
@@ -239,7 +286,7 @@
                                             </svg>
                                             Edit
                                         </button>
-                                        <form action="{{ route('apoteker.obat.destroy', $obat->kd_obat) }}"
+                                        <form action="{{ route('karyawan.obat.destroy', $obat->kd_obat) }}"
                                             method="POST"
                                             onsubmit="return confirm('Apakah Anda yakin ingin menghapus obat ini?');">
                                             @csrf
@@ -297,7 +344,7 @@
 
                 <div x-show="showCreateModal" x-transition
                     class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-                    <form action="{{ route('apoteker.obat.store') }}" method="POST">
+                    <form action="{{ route('karyawan.obat.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="px-8 py-6 bg-gradient-to-r from-teal-50 to-emerald-50">
                             <div class="flex items-center justify-between">
@@ -413,6 +460,16 @@
                                         placeholder="0">
                                 </div>
 
+                                <!-- Gambar -->
+                                <div class="md:col-span-2">
+                                    <label for="create_gambar" class="block text-sm font-medium text-gray-700">
+                                        Gambar Obat
+                                    </label>
+                                    <input type="file" name="gambar" id="create_gambar" accept="image/jpeg,image/png,image/jpg"
+                                        class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                                    <p class="mt-1 text-xs text-gray-500">Format: jpeg, png, jpg · Maksimal 2 MB</p>
+                                </div>
+
                                 <!-- Supplier -->
                                 <div>
                                     <label for="create_kd_supplier" class="block text-sm font-medium text-gray-700">
@@ -460,7 +517,7 @@
 
                 <div x-show="showEditModal" x-transition
                     class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-                    <form :action="`{{ route('apoteker.obat.index') }}/${editObat.kd_obat}`" method="POST">
+                    <form :action="`{{ route('karyawan.obat.index') }}/${editObat.kd_obat}`" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         <div class="px-8 py-6 bg-gradient-to-r from-teal-50 to-emerald-50">
@@ -575,6 +632,21 @@
                                     <input type="number" name="stok" id="edit_stok" :value="editObat.stok"
                                         min="0" required
                                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                                </div>
+
+                                <!-- Gambar -->
+                                <div class="md:col-span-2">
+                                    <label for="edit_gambar" class="block text-sm font-medium text-gray-700">
+                                        Gambar Obat
+                                    </label>
+                                    <div class="flex items-center mt-1 space-x-3">
+                                        <img :src="editObat.gambar ? '/storage/' + editObat.gambar : '/images/no-image.svg'"
+                                            class="object-cover w-14 h-14 bg-gray-100 rounded-lg">
+                                        <input type="file" name="gambar" id="edit_gambar"
+                                            accept="image/jpeg,image/png,image/jpg"
+                                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500">Kosongkan jika tidak mengubah gambar · Format: jpeg, png, jpg · Maksimal 2 MB</p>
                                 </div>
 
                                 <!-- Supplier -->

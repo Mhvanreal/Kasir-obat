@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Supplier;
-use App\Models\Pelanggan;
 use App\Models\Obat;
+use App\Models\Pelanggan;
+use App\Models\Supplier;
+use Illuminate\Database\Seeder;
 
 class MasterDataSeeder extends Seeder
 {

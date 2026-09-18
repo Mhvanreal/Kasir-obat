@@ -10,7 +10,9 @@ class Pembelian extends Model
     use HasFactory;
 
     protected $primaryKey = 'nota';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -61,6 +63,7 @@ class Pembelian extends Model
     {
         $diskonAmount = ($this->total * $this->diskon) / 100;
         $this->grand_total = $this->total - $diskonAmount;
+
         return $this->grand_total;
     }
 }

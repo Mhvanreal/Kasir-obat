@@ -45,6 +45,7 @@ class PembelianDetail extends Model
     public function calculateSubtotal()
     {
         $this->subtotal = $this->jumlah * $this->harga_beli;
+
         return $this->subtotal;
     }
 }

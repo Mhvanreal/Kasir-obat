@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ObatRequest;
 use App\Models\Obat;
 use App\Models\Supplier;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ObatController extends Controller
 {
+    protected const REDIRECT_ROUTE = 'karyawan.obat.index';
+
+    protected const GAMBAR_DIR = 'gambar-obat';
+
     /**
      * Display a listing of the resource.
      */
@@ -15,6 +20,7 @@ class ObatController extends Controller
     {
         $obats = Obat::with('supplier')->latest()->get();
         $suppliers = Supplier::all();
+
         return view('obat.index', compact('obats', 'suppliers'));
     }
 
@@ -24,38 +30,24 @@ class ObatController extends Controller
     public function create()
     {
         $suppliers = Supplier::all();
+
         return view('obat.create', compact('suppliers'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ObatRequest $request)
     {
-        $validated = $request->validate([
-            'kd_obat' => 'required|string|max:20|unique:obats,kd_obat',
-            'nm_obat' => 'required|string|max:255',
-            'jenis' => 'required|string|max:100',
-            'satuan' => 'required|string|max:50',
-            'harga_beli' => 'required|numeric|min:0',
-            'harga_jual' => 'required|numeric|min:0',
-            'stok' => 'required|integer|min:0',
-            'kd_supplier' => 'required|exists:suppliers,kd_supplier',
-        ], [
-            'kd_obat.required' => 'Kode obat wajib diisi',
-            'kd_obat.unique' => 'Kode obat sudah digunakan',
-            'nm_obat.required' => 'Nama obat wajib diisi',
-            'jenis.required' => 'Jenis obat wajib diisi',
-            'satuan.required' => 'Satuan wajib diisi',
-            'harga_beli.required' => 'Harga beli wajib diisi',
-            'harga_jual.required' => 'Harga jual wajib diisi',
-            'stok.required' => 'Stok wajib diisi',
-            'kd_supplier.required' => 'Supplier wajib dipilih',
-        ]);
+        $validated = $request->validated();
+
+        if ($request->hasFile('gambar')) {
+            $validated['gambar'] = $request->file('gambar')->store(self::GAMBAR_DIR, 'public');
+        }
 
         Obat::create($validated);
 
-        return redirect()->route('apoteker.obat.index')
+        return redirect()->route(self::REDIRECT_ROUTE)
             ->with('success', 'Data obat berhasil ditambahkan!');
     }
 
@@ -65,6 +57,7 @@ class ObatController extends Controller
     public function show(string $id)
     {
         $obat = Obat::with('supplier')->findOrFail($id);
+
         return view('obat.show', compact('obat'));
     }
 
@@ -75,37 +68,29 @@ class ObatController extends Controller
     {
         $obat = Obat::findOrFail($id);
         $suppliers = Supplier::all();
+
         return view('obat.edit', compact('obat', 'suppliers'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(ObatRequest $request, string $id)
     {
         $obat = Obat::findOrFail($id);
+        $validated = $request->validated();
 
-        $validated = $request->validate([
-            'nm_obat' => 'required|string|max:255',
-            'jenis' => 'required|string|max:100',
-            'satuan' => 'required|string|max:50',
-            'harga_beli' => 'required|numeric|min:0',
-            'harga_jual' => 'required|numeric|min:0',
-            'stok' => 'required|integer|min:0',
-            'kd_supplier' => 'required|exists:suppliers,kd_supplier',
-        ], [
-            'nm_obat.required' => 'Nama obat wajib diisi',
-            'jenis.required' => 'Jenis obat wajib diisi',
-            'satuan.required' => 'Satuan wajib diisi',
-            'harga_beli.required' => 'Harga beli wajib diisi',
-            'harga_jual.required' => 'Harga jual wajib diisi',
-            'stok.required' => 'Stok wajib diisi',
-            'kd_supplier.required' => 'Supplier wajib dipilih',
-        ]);
+        if ($request->hasFile('gambar')) {
+            if ($obat->gambar) {
+                Storage::disk('public')->delete($obat->gambar);
+            }
+
+            $validated['gambar'] = $request->file('gambar')->store(self::GAMBAR_DIR, 'public');
+        }
 
         $obat->update($validated);
 
-        return redirect()->route('apoteker.obat.index')
+        return redirect()->route(self::REDIRECT_ROUTE)
             ->with('success', 'Data obat berhasil diperbarui!');
     }
 
@@ -115,9 +100,14 @@ class ObatController extends Controller
     public function destroy(string $id)
     {
         $obat = Obat::findOrFail($id);
+
+        if ($obat->gambar) {
+            Storage::disk('public')->delete($obat->gambar);
+        }
+
         $obat->delete();
 
-        return redirect()->route('apoteker.obat.index')
+        return redirect()->route(self::REDIRECT_ROUTE)
             ->with('success', 'Data obat berhasil dihapus!');
     }
 }

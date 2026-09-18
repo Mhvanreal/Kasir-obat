@@ -45,6 +45,7 @@ class PenjualanDetail extends Model
     public function calculateSubtotal()
     {
         $this->subtotal = $this->jumlah * $this->harga_jual;
+
         return $this->subtotal;
     }
 }

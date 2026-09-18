@@ -10,7 +10,9 @@ class Pelanggan extends Model
     use HasFactory;
 
     protected $primaryKey = 'kd_pelanggan';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

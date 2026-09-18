@@ -61,19 +61,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is kasir
+     * Check if user is karyawan (merges former kasir + apoteker roles)
      */
-    public function isKasir()
+    public function isKaryawan()
     {
-        return $this->role === 'kasir';
-    }
-
-    /**
-     * Check if user is apoteker
-     */
-    public function isApoteker()
-    {
-        return $this->role === 'apoteker';
+        return $this->role === 'karyawan';
     }
 
     /**

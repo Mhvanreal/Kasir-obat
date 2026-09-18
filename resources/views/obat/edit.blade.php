@@ -7,7 +7,7 @@
         <!-- Header -->
         <div class="mb-8">
             <div class="flex items-center space-x-4">
-                <a href="{{ route('obat.index') }}"
+                <a href="{{ route('karyawan.obat.index') }}"
                     class="inline-flex items-center justify-center w-10 h-10 text-gray-600 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -30,7 +30,8 @@
                 </div>
             </div>
 
-            <form action="{{ route('obat.update', $obat->kd_obat) }}" method="POST" class="p-6">
+            <form action="{{ route('karyawan.obat.update', $obat->kd_obat) }}" method="POST"
+                enctype="multipart/form-data" class="p-6">
                 @csrf
                 @method('PUT')
 
@@ -163,6 +164,28 @@
                         @enderror
                     </div>
 
+                    <!-- Gambar -->
+                    <div class="md:col-span-2">
+                        <label for="gambar" class="block text-sm font-medium text-gray-700">
+                            Gambar Obat
+                        </label>
+                        <div class="flex items-center mt-1 space-x-3">
+                            @if ($obat->gambar)
+                                <img src="{{ asset('storage/'.$obat->gambar) }}"
+                                    class="object-cover w-16 h-16 rounded-lg">
+                            @else
+                                <img src="{{ asset('images/no-image.svg') }}"
+                                    class="object-cover w-16 h-16 bg-gray-100 rounded-lg">
+                            @endif
+                            <input type="file" name="gambar" id="gambar" accept="image/jpeg,image/png,image/jpg"
+                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Kosongkan jika tidak mengubah gambar · Format: jpeg, png, jpg · Maksimal 2 MB</p>
+                        @error('gambar')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Supplier -->
                     <div>
                         <label for="kd_supplier" class="block text-sm font-medium text-gray-700">
@@ -186,7 +209,7 @@
 
                 <!-- Buttons -->
                 <div class="flex items-center justify-end mt-8 space-x-3">
-                    <a href="{{ route('apoteker.obat') }}"
+                    <a href="{{ route('karyawan.obat.index') }}"
                         class="inline-flex items-center px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

@@ -43,6 +43,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        // Arahkan langsung ke halaman login, bukan ke halaman root Laravel bawaan.
+        return redirect()->route('login');
     }
 }
